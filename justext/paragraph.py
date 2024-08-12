@@ -13,12 +13,13 @@ HEADINGS_PATTERN = re.compile(r"\bh\d\b")
 
 class Paragraph(object):
     """Object representing one block of text in HTML."""
-    def __init__(self, path):
+    def __init__(self, path, text_node_separator: str = ""):
         self.dom_path = path.dom
         self.xpath = path.xpath
         self.text_nodes = []
         self.chars_count_in_links = 0
         self.tags_count = 0
+        self.text_node_separator = text_node_separator
         self.class_type = ""  # short | neargood | good | bad
 
     @property
@@ -31,7 +32,7 @@ class Paragraph(object):
 
     @property
     def text(self):
-        text = "".join(self.text_nodes)
+        text = self.text_node_separator.join(self.text_nodes)
         return normalize_whitespace(text.strip())
 
     def __len__(self):

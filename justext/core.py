@@ -137,25 +137,26 @@ class ParagraphMaker(ContentHandler):
     """
 
     @classmethod
-    def make_paragraphs(cls, root):
+    def make_paragraphs(cls, root, text_node_separator: str = ""):
         """Converts DOM into paragraphs."""
-        handler = cls()
+        handler = cls(text_node_separator=text_node_separator)
         lxml.sax.saxify(root, handler)
         return handler.paragraphs
 
-    def __init__(self):
+    def __init__(self, text_node_separator: str = ""):
         self.path = PathInfo()
         self.paragraphs = []
         self.paragraph = None
         self.link = False
         self.br = False
+        self.text_node_separator = text_node_separator
         self._start_new_pragraph()
 
     def _start_new_pragraph(self):
         if self.paragraph and self.paragraph.contains_text():
             self.paragraphs.append(self.paragraph)
 
-        self.paragraph = Paragraph(self.path)
+        self.paragraph = Paragraph(self.path, text_node_separator=self.text_node_separator)
 
     def startElementNS(self, name, qname, attrs):
         name = name[1]
@@ -376,7 +377,7 @@ def justext(html_text, stoplist, length_low=LENGTH_LOW_DEFAULT,
         stopwords_high=STOPWORDS_HIGH_DEFAULT, max_link_density=MAX_LINK_DENSITY_DEFAULT,
         max_heading_distance=MAX_HEADING_DISTANCE_DEFAULT, no_headings=NO_HEADINGS_DEFAULT,
         encoding=None, default_encoding=DEFAULT_ENCODING,
-        enc_errors=DEFAULT_ENC_ERRORS, preprocessor=preprocessor):
+        enc_errors=DEFAULT_ENC_ERRORS, preprocessor=preprocessor, text_node_separator: str=""):
     """
     Converts an HTML page into a list of classified paragraphs. Each paragraph
     is represented as instance of class ˙˙justext.paragraph.Paragraph˙˙.
@@ -384,7 +385,7 @@ def justext(html_text, stoplist, length_low=LENGTH_LOW_DEFAULT,
     dom = html_to_dom(html_text, default_encoding, encoding, enc_errors)
     dom = preprocessor(dom)
 
-    paragraphs = ParagraphMaker.make_paragraphs(dom)
+    paragraphs = ParagraphMaker.make_paragraphs(dom, text_node_separator=text_node_separator)
 
     classify_paragraphs(paragraphs, stoplist, length_low, length_high,
         stopwords_low, stopwords_high, max_link_density, no_headings)
